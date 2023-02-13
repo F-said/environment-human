@@ -8,6 +8,7 @@ import scipy.stats as stats
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from sklearn.preprocessing import MinMaxScaler
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -147,7 +148,7 @@ fig.savefig("images/airevsairh.png")
 plt.clf()
 
 # load your data back in
-joined_df.to_sql("epi_hdi", engine)
+joined_df.to_sql("epi_hdi", engine, if_exists='replace')
 engine.dispose()
 
 # observations: seems to be positive correlation b/w air & human life expectancy
@@ -173,3 +174,23 @@ y_pred = model.predict(X_test)
 
 print("MAE", metrics.mean_absolute_error(y_test, y_pred))
 
+# let's try this again with scaled data
+scaler = MinMaxScaler()
+
+joined_focus = joined_df[['air_h', 'life expectancy']]
+
+scaled_data = scaler.fit_transform(joined_focus)
+epihdi_scaled = pd.DataFrame(scaled_data, columns=joined_focus.columns)
+
+X = epihdi_scaled["air_h"].array.reshape(-1, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, epihdi_scaled["life expectancy"], test_size=0.25, random_state=42)
+
+model.fit(X_train, y_train)
+
+r_sq = model.score(X_test, y_test)
+print(f"R-squared score: {r_sq}")
+
+# further analyze goodness of fit
+y_pred = model.predict(X_test)
+
+print("MAE", metrics.mean_absolute_error(y_test, y_pred))
