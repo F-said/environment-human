@@ -146,6 +146,10 @@ fig = scatter.get_figure()
 fig.savefig("images/airevsairh.png") 
 plt.clf()
 
+# load your data back in
+joined_df.to_sql("epi_hdi", engine)
+engine.dispose()
+
 # observations: seems to be positive correlation b/w air & human life expectancy
 
 # split into test & train set
@@ -168,3 +172,4 @@ print(f"R-squared score: {r_sq}")
 y_pred = model.predict(X_test)
 
 print("MAE", metrics.mean_absolute_error(y_test, y_pred))
+
